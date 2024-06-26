@@ -20,10 +20,8 @@ export enum PlayStatus {
   DONE
 }
 
-let CONTROL_PlayStatus = PlayStatus.INIT;
 let PROGRESS_MAX_VALUE: number = 100;
 let mIjkMediaPlayer = IjkMediaPlayer.getInstance();
-let updateProgressTimer: number = 0;
 
 @Entry
 @Component
@@ -47,12 +45,16 @@ export struct VideoPlayerView {
   @State isCurrentTime: boolean = false;
   private videoUrl: string = '';
   private playerChannel : VideoPlayerController | null = null;
+  private xComponentId : string = '';
+  private playStatus = PlayStatus.INIT;
+  private updateProgressTimer: number = 0;
+
 
   aboutToAppear() {
-    this.pause();
     LogUtils.getInstance().LOGI("aboutToAppear");
     if (this.param != null) {
       this.playerChannel = DynamicUtils.getParams(this.param!.platformView,'controller');
+      this.xComponentId = 'xComponentId' + this.playerChannel!.viewId.toString();
       this.videoUrl = DynamicUtils.getParams(this.param!.platformView,'url');
       this.playerChannel?.setOperationCall(
         (param : ESObject) => {
@@ -76,6 +78,10 @@ export struct VideoPlayerView {
               this.startPlayOrResumePlay();
             }
               break;
+            case 'stop' : {
+              this.stop();
+            }
+              break;
             case 'seekTo' : {
               let progress : string = DynamicUtils.getParams(param,'progress');
               this.seekTo(progress);
@@ -84,7 +90,6 @@ export struct VideoPlayerView {
 
           }
         });
-      this.playerChannel?.addChannelListener();
     }
   }
 
@@ -92,7 +97,7 @@ export struct VideoPlayerView {
     LogUtils.getInstance().LOGI("aboutToDisappear");
     this.mDestroyPage = true;
     mIjkMediaPlayer.setScreenOnWhilePlaying(false);
-    if (CONTROL_PlayStatus != PlayStatus.INIT) {
+    if (this.playStatus != PlayStatus.INIT) {
       this.stop();
     }
   }
@@ -109,9 +114,9 @@ export struct VideoPlayerView {
 
   build() {
     Stack({ alignContent: Alignment.Center }) {
-      Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Auto, justifyContent: FlexAlign.Start }) {
+      Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Auto, justifyContent: FlexAlign.Center }) {
         XComponent({
-          id: 'xcomponentId',
+          id: this.xComponentId,
           type: 'surface',
           libraryname: 'ijkplayer_napi',
         })
@@ -146,13 +151,13 @@ export struct VideoPlayerView {
 
   private startPlayOrResumePlay() {
     this.mDestroyPage = false;
-    LogUtils.getInstance().LOGI("startPlayOrResumePlay start CONTROL_PlayStatus:" + CONTROL_PlayStatus)
-    if (CONTROL_PlayStatus == PlayStatus.INIT) {
+    LogUtils.getInstance().LOGI("startPlayOrResumePlay start CONTROL_PlayStatus:" + this.playStatus)
+    if (this.playStatus == PlayStatus.INIT) {
       this.stopProgressTask();
       this.startProgressTask();
       this.play(this.videoUrl.toString());
     }
-    if (CONTROL_PlayStatus == PlayStatus.PAUSE) {
+    if (this.playStatus == PlayStatus.PAUSE) {
       mIjkMediaPlayer.start();
       this.setProgress()
     }
@@ -223,7 +228,7 @@ export struct VideoPlayerView {
 
   private startProgressTask() {
     let that = this;
-    updateProgressTimer = setInterval(() => {
+    this.updateProgressTimer = setInterval(() => {
       LogUtils.getInstance().LOGI("startProgressTask");
       if (!that.mDestroyPage) {
         that.setProgress();
@@ -233,7 +238,7 @@ export struct VideoPlayerView {
 
   private stopProgressTask() {
     LogUtils.getInstance().LOGI("stopProgressTask");
-    clearInterval(updateProgressTimer);
+    clearInterval(this.updateProgressTimer);
   }
 
   private showLoadIng() {
@@ -256,12 +261,12 @@ export struct VideoPlayerView {
     that.showLoadIng();
     //设置XComponent回调的context
     if (!!this.mContext) {
-      mIjkMediaPlayer.setContext(this.mContext, 'xcomponentId');
+      mIjkMediaPlayer.setContext(this.mContext, this.xComponentId);
     }
-    if (CONTROL_PlayStatus == PlayStatus.INIT) {
+    if (this.playStatus == PlayStatus.INIT) {
       mIjkMediaPlayer.reset();
     }
-    CONTROL_PlayStatus = PlayStatus.PLAY;
+    this.playStatus = PlayStatus.PLAY;
     //设置debug模式
     mIjkMediaPlayer.setDebug(true);
     //初始化配置
@@ -412,12 +417,12 @@ export struct VideoPlayerView {
       mIjkMediaPlayer.pause();
       this.setProgress();
       this.mDestroyPage = true;
-      CONTROL_PlayStatus = PlayStatus.PAUSE;
+      this.playStatus = PlayStatus.PAUSE;
     }
   }
 
   private stop() {
-    CONTROL_PlayStatus = PlayStatus.INIT;
+    this.playStatus = PlayStatus.INIT;
     mIjkMediaPlayer.stop();
     mIjkMediaPlayer.release();
     this.stopProgressTask();
@@ -425,6 +430,5 @@ export struct VideoPlayerView {
 
   private seekTo(value: string) {
     mIjkMediaPlayer.seekTo(value);
-
   }
 }

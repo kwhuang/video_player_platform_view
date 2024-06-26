@@ -35,6 +35,7 @@ export default class VideoPlayerController implements StreamHandler{
   }
 
   setOperationCall(callBack : VideoOperationCallBack) {
+    this.addChannelListener();
     this.operationCallBack = callBack;
   }
 
@@ -105,6 +106,13 @@ export default class VideoPlayerController implements StreamHandler{
 
   sendEvent(args: ESObject) {
     this.eventSink?.success(args);
+  }
+
+  pause(url : string | null) {
+    this.callBack({
+      'type' : 'stop',
+      'url' : url
+    });
   }
 
 }

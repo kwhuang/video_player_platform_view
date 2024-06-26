@@ -57,7 +57,7 @@ export class VideoPlatformPlayerView extends PlatformView {
   }
 
   dispose(): void {
-
+    this.controller?.pause(this.url);
   }
 
   onInputConnectionLocked(): void {
