@@ -1,0 +1,16 @@
+{
+  "module": {
+    "name": "video_player_platform_view",
+    "type": "har",
+    "deviceTypes": [
+      "default",
+      "tablet"
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.INTERNET",
+        "reason": "$string:NET_REQUEST_PERMISSION"
+      }
+    ]
+  }
+}
