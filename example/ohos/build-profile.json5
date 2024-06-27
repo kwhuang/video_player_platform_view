@@ -6,9 +6,9 @@
         "type": "HarmonyOS",
         "material": {
           "certpath": "/Users/admin/.ohos/config/default_ohos_G0cl6qApGy6IMZEuFHOc59ML8IVxTczil5NQZ2rP20A=.cer",
-          "storePassword": "0000001A061E5116B2D3CB4C874A8C2FE245BF244C56716387B31171E15DB2645EAC968508FF7C775EB2",
+          "storePassword": "0000001AF25C908580137C4B1BF2911D8EA482DF5DE0F34B391FBB1616E0C071B6571581C86B118570C4",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001A3FDF93CCBA0FC28167DD6834104AF8922937F542948208964DDE6CD8902C02E987C8A9321237",
+          "keyPassword": "0000001A2F428FFB6D99CE1A3AC9B3DDD71E48A7E1D20A6A507702B3832BC5BDC466ECE0991BBD4349E0",
           "profile": "/Users/admin/.ohos/config/default_ohos_G0cl6qApGy6IMZEuFHOc59ML8IVxTczil5NQZ2rP20A=.p7b",
           "signAlg": "SHA256withECDSA",
           "storeFile": "/Users/admin/.ohos/config/default_ohos_G0cl6qApGy6IMZEuFHOc59ML8IVxTczil5NQZ2rP20A=.p12"
@@ -19,9 +19,8 @@
       {
         "name": "default",
         "signingConfig": "default",
-        "compileSdkVersion": "4.1.0(11)",
-        "compatibleSdkVersion": "4.1.0(11)",
-        "targetSdkVersion": "4.1.0(11)",
+        "compatibleSdkVersion": "5.0.0(12)",
+        "targetSdkVersion": "5.0.0(12)",
         "runtimeOS": "HarmonyOS"
       }
     ]

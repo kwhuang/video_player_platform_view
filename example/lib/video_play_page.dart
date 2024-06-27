@@ -54,8 +54,7 @@ class _VideoPlayPageState extends State<VideoPlayPage> with WidgetsBindingObserv
                     backgroundColor: MaterialStateProperty.all(Colors.lightBlue),
                   ),
                   onPressed: () {
-                    _controller?.playWithUrl(
-                        url: 'http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid_demo1080p.flv');
+                    _controller?.playWithUrl(url: 'http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid.flv');
                   },
                   child: const Text('播放'),
                 ),
@@ -73,7 +72,8 @@ class _VideoPlayPageState extends State<VideoPlayPage> with WidgetsBindingObserv
                     backgroundColor: MaterialStateProperty.all(Colors.lightBlue),
                   ),
                   onPressed: () {
-                    Navigator.pushNamed(context, '/video_play_page');
+                    Navigator.pushNamed(context, '/video_play_page',
+                        arguments: {'url': 'http://liteavapp.qcloud.com/live/liteavdemoplayerstreamid.flv'});
                   },
                   child: const Text('跳转视频播放'),
                 ),

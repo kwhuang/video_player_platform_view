@@ -8,9 +8,9 @@ import { OnInfoListener } from "@ohos/ijkplayer";
 import { OnSeekCompleteListener } from "@ohos/ijkplayer";
 import { LogUtils } from "@ohos/ijkplayer"
 import prompt from '@ohos.promptAction';
-import { Params } from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformView';
 import VideoPlayerController from './VideoPlayerController';
 import { DynamicUtils } from './DynamicUtils';
+import { DVModelParameters } from '@ohos/flutter_ohos/src/main/ets/view/DynamicView/dynamicView';
 
 
 export enum PlayStatus {
@@ -28,7 +28,7 @@ let mIjkMediaPlayer = IjkMediaPlayer.getInstance();
 export struct VideoPlayerView {
 
 
-  public param : Params | null = null;
+  public param : DVModelParameters | null = null;
   @State progressValue: number = 0;
   @State currentTime: string = "00:00";
   @State totalTime: string = "00:00";
@@ -36,7 +36,7 @@ export struct VideoPlayerView {
   @State replayVisible: Visibility = Visibility.None;
   @State slideEnable: boolean = false;
   @State aspRatio: number = 0.5;
-  @State mContext: object | undefined = undefined;
+  private mContext: object | undefined = undefined;
   @State mFirst: boolean = true;
   @State mDestroyPage: boolean = false;
   @State playSpeed: string = '1f';
@@ -53,9 +53,9 @@ export struct VideoPlayerView {
   aboutToAppear() {
     LogUtils.getInstance().LOGI("aboutToAppear");
     if (this.param != null) {
-      this.playerChannel = DynamicUtils.getParams(this.param!.platformView,'controller');
+      this.playerChannel = DynamicUtils.getParams(this.param!,'controller');
       this.xComponentId = 'xComponentId' + this.playerChannel!.viewId.toString();
-      this.videoUrl = DynamicUtils.getParams(this.param!.platformView,'url');
+      this.videoUrl = DynamicUtils.getParams(this.param!,'url');
       this.playerChannel?.setOperationCall(
         (param : ESObject) => {
           let type : string | null = DynamicUtils.getParams(param,'type');

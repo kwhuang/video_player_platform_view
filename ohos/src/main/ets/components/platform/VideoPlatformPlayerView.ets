@@ -1,17 +1,16 @@
 import { FlutterPluginBinding } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/FlutterPlugin';
 import PlatformView from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformView';
-import { DVModel } from '@ohos/flutter_ohos/src/main/ets/view/DynamicView/dynamicView';
+import { BuilderParams, DVModel } from '@ohos/flutter_ohos/src/main/ets/view/DynamicView/dynamicView';
 import { createDVModelFromJson } from '@ohos/flutter_ohos/src/main/ets/view/DynamicView/dynamicViewJson';
 import VideoPlayerController from './VideoPlayerController';
 import { VideoPlayerView } from './VideoPlayerView';
-import { Params } from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformView';
 import { DVModelJson } from './DynamicUtils';
 import { DynamicUtils } from './DynamicUtils';
 
 
 @Builder
-function createVideoPlayerView(param : Params) {
-  VideoPlayerView({param:param});
+function createVideoPlayerView(param : BuilderParams) {
+  VideoPlayerView({param:param.params});
 }
 
 export class VideoPlatformPlayerView extends PlatformView {
@@ -20,6 +19,8 @@ export class VideoPlatformPlayerView extends PlatformView {
   private binding: FlutterPluginBinding | null = null;
   private url : string | null = null;
   private viewId : number = 0;
+  private ohosWebView: DVModelJson | null = null;
+  private ohosModel : ESObject = null;
 
   constructor(context: Context, viewId: ESObject, args: ESObject,binding: FlutterPluginBinding) {
     super();
@@ -27,22 +28,20 @@ export class VideoPlatformPlayerView extends PlatformView {
     this.binding = binding;
     this.url = args.get('url');
     this.controller = new VideoPlayerController(this.binding.getBinaryMessenger(),viewId);
+    this.ohosWebView = new DVModelJson(
+      "other",
+      [],
+      {
+        src: "",
+        viewId : this.viewId,
+        url : this.url,
+        controller : this.controller
+      },
+      {},
+      createVideoPlayerView
+    );
+    this.ohosModel = createDVModelFromJson(this.ohosWebView);
   }
-
-  ohosWebView: DVModelJson = new DVModelJson(
-    "other",
-    [],
-    {
-      src: "",
-      viewId : this.viewId,
-      url : this.url,
-      controller : this.controller
-    },
-    {},
-    createVideoPlayerView
-  )
-
-  private ohosModel = createDVModelFromJson(this.ohosWebView);
 
   getView(): DVModel {
     return this.ohosModel;
