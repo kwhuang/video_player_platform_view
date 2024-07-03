@@ -7,6 +7,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@ohos/flutter_ohos": "file:libs/flutter.har",
-    "@ohos/ijkplayer": "2.0.3-rc.1"
+    "@ohos/ijkplayer": "2.0.3-rc.3"
   }
 }

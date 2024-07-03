@@ -27,7 +27,6 @@ let mIjkMediaPlayer = IjkMediaPlayer.getInstance();
 @Component
 export struct VideoPlayerView {
 
-
   public param : DVModelParameters | null = null;
   @State progressValue: number = 0;
   @State currentTime: string = "00:00";
@@ -35,7 +34,7 @@ export struct VideoPlayerView {
   @State loadingVisible: Visibility = Visibility.None;
   @State replayVisible: Visibility = Visibility.None;
   @State slideEnable: boolean = false;
-  @State aspRatio: number = 0.5;
+  @State aspRatio: number = 16/9;
   private mContext: object | undefined = undefined;
   @State mFirst: boolean = true;
   @State mDestroyPage: boolean = false;
@@ -87,6 +86,11 @@ export struct VideoPlayerView {
               this.seekTo(progress);
             }
               break;
+            case 'play_loop' : {
+              let loop : boolean = DynamicUtils.getParams(param,'loop');
+              mIjkMediaPlayer.setLoopCount(loop);
+            }
+              break;
 
           }
         });
@@ -114,29 +118,29 @@ export struct VideoPlayerView {
 
   build() {
     Stack({ alignContent: Alignment.Center }) {
-      Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Auto, justifyContent: FlexAlign.Center }) {
-        XComponent({
-          id: this.xComponentId,
-          type: 'surface',
-          libraryname: 'ijkplayer_napi',
+      XComponent({
+        id: this.xComponentId,
+        type: 'surface',
+        libraryname: 'ijkplayer_napi',
+      })
+        .onLoad((event?: object) => {
+          if (!!event) {
+            this.initDelayPlay(event);
+          }
         })
-          .onLoad((event?: object) => {
-            if (!!event) {
-              this.initDelayPlay(event);
-            }
-          })
-          .onDestroy(() => {
-            this.pause();
-          })
-          .width('100%')
-      }
+        .onDestroy(() => {
+          this.pause();
+        })
+        .width('100%')
+        .aspectRatio(this.aspRatio)
       LoadingProgress()
         .width('120px')
         .height('120px')
         .visibility(this.loadingVisible)
         .border({ width: 0 })
         .borderStyle(BorderStyle.Dashed)
-    }.width('100%').height('100%').backgroundColor('#000000').clip(true)
+    }.width('100%').height('100%').backgroundColor('#000000').clip(false)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   private initDelayPlay(context: object) {

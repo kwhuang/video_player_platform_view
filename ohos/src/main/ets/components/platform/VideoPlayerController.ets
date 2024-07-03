@@ -102,6 +102,18 @@ export default class VideoPlayerController implements StreamHandler{
         });
       }
     });
+
+    const loopChannel: BasicMessageChannel<Object> = new BasicMessageChannel<Object>(
+      this.binaryMessenger!, "dev.flutter.pigeon.VideoPlayerApi." + this.viewId + ".loop",StandardMessageCodec.INSTANCE);
+    loopChannel.setMessageHandler({
+      onMessage(msg: Object, reply: Reply<Object>): void {
+        console.log("播放器-play_loop" + msg.toString());
+        self.callBack({
+          'type' : 'play_loop',
+          'loop' : msg
+        });
+      }
+    });
   }
 
   sendEvent(args: ESObject) {

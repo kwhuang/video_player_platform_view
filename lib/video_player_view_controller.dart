@@ -86,4 +86,14 @@ class VideoPlayerViewController {
     debugPrint('播放器-seekTo:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.seekTo');
     return replay;
   }
+
+  Future<dynamic> setLoop(loop) async {
+    BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+      'dev.flutter.pigeon.VideoPlayerApi.$_id.loop',
+      const StandardMessageCodec(),
+    );
+    final replay = await channel.send(loop);
+    debugPrint('播放器-loop:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.seekTo');
+    return replay;
+  }
 }
