@@ -1,17 +1,21 @@
-import { BinaryMessenger,EventChannel, StandardMessageCodec } from '@ohos/flutter_ohos';
+import { BinaryMessenger,EventChannel,
+  MethodCall,
+  MethodCallHandler,
+  MethodChannel,
+  MethodResult,
+  StandardMessageCodec } from '@ohos/flutter_ohos';
 import BasicMessageChannel from '@ohos/flutter_ohos/src/main/ets/plugin/common/BasicMessageChannel';
 import { Reply } from '@ohos/flutter_ohos/src/main/ets/plugin/common/BasicMessageChannel';
 import { EventSink, StreamHandler } from '@ohos/flutter_ohos/src/main/ets/plugin/common/EventChannel';
 
-type VideoOperationCallBack = (param : ESObject) => void;
-
 //操作
-export default class VideoPlayerController implements StreamHandler{
+export default class VideoPlayerController implements StreamHandler,MethodCallHandler{
 
   private binaryMessenger: BinaryMessenger | null = null;
   private eventChannel : EventChannel | null = null;
   private eventSink : EventSink | null = null;
-  private operationCallBack : VideoOperationCallBack | null = null;
+  private playerChannel : MethodChannel | null = null;
+  public operationCallBack : ((args: ESObject) => void) | null = null;
   public viewId : ESObject = null;
 
   constructor(binaryMessenger: BinaryMessenger,viewId:ESObject) {
@@ -20,8 +24,34 @@ export default class VideoPlayerController implements StreamHandler{
     try {
       this.eventChannel = new EventChannel(binaryMessenger,"beautydata.com/videoPlayer/event/" + viewId);
       this.eventChannel.setStreamHandler(this);
+      this.playerChannel = new MethodChannel(binaryMessenger,"beautydata.com/videoPlayer/channel/" + viewId);
+      this.playerChannel.setMethodCallHandler(this);
     } catch (e) {
       console.log("失败"+e.toString());
+    }
+  }
+
+  onMethodCall(call: MethodCall, result: MethodResult): void {
+    if (call.method == "play") {
+      this.play(call.args.get('url'));
+      result.success(true);
+    } else if (call.method == "pause") {
+      this.pause(call.args.get('url'));
+      result.success(true);
+    } else if (call.method == "resume") {
+      this.resume(call.args.get('url'));
+      result.success(true);
+    }else if (call.method == "stop") {
+      this.stop(call.args.get('url'));
+      result.success(true);
+    }else if (call.method == "seekTo") {
+      this.seekTo(call.args.get('url'),call.args.get('progress'));
+      result.success(true);
+    } else if (call.method == "loop") {
+      this.setLoop(call.args.get('url'),call.args.get('loop'));
+      result.success(true);
+    }else {
+      result.notImplemented();
     }
   }
 
@@ -34,90 +64,21 @@ export default class VideoPlayerController implements StreamHandler{
     this.eventSink = null;
   }
 
-  setOperationCall(callBack : VideoOperationCallBack) {
-    this.addChannelListener();
-    this.operationCallBack = callBack;
-  }
-
   callBack(args:ESObject) {
     if (this.operationCallBack != null) {
       this.operationCallBack!(args);
     }
   }
 
-  addChannelListener() {
-    const self = this;
-    const playUrlChannel: BasicMessageChannel<Object> = new BasicMessageChannel<Object>(
-      this.binaryMessenger!, "dev.flutter.pigeon.VideoPlayerApi."+ this.viewId +".play.url",StandardMessageCodec.INSTANCE);
-    playUrlChannel.setMessageHandler({
-      onMessage(msg: Object, reply: Reply<Object>): void {
-        console.log("播放器-play" + msg.toString());
-        self.callBack({
-          'type' : 'play_url',
-          'url' : msg.toString()
-        });
-      }
-    });
-    const playChannel: BasicMessageChannel<Object> = new BasicMessageChannel<Object>(
-      this.binaryMessenger!, "dev.flutter.pigeon.VideoPlayerApi." + this.viewId + ".play",StandardMessageCodec.INSTANCE);
-    playChannel.setMessageHandler({
-      onMessage(msg: Object, reply: Reply<Object>): void {
-        console.log("播放器-pause" + msg.toString());
-        self.callBack({
-          'type' : 'play',
-          'url' : msg.toString()
-        });
-      }
-    });
-    const pauseChannel: BasicMessageChannel<Object> = new BasicMessageChannel<Object>(
-      this.binaryMessenger!, "dev.flutter.pigeon.VideoPlayerApi." + this.viewId + ".pause",StandardMessageCodec.INSTANCE);
-    pauseChannel.setMessageHandler({
-      onMessage(msg: Object, reply: Reply<Object>): void {
-        console.log("播放器-pause" + msg.toString());
-        self.callBack({
-          'type' : 'pause',
-          'url' : msg.toString()
-        });
-      }
-    });
-    const stopChannel: BasicMessageChannel<Object> = new BasicMessageChannel<Object>(
-      this.binaryMessenger!, "dev.flutter.pigeon.VideoPlayerApi." + this.viewId + ".stop",StandardMessageCodec.INSTANCE);
-    stopChannel.setMessageHandler({
-      onMessage(msg: Object, reply: Reply<Object>): void {
-        console.log("播放器-stop" + msg.toString());
-        self.callBack({
-          'type' : 'stop',
-          'url' : msg.toString()
-        });
-      }
-    });
-    const seekToChannel: BasicMessageChannel<Object> = new BasicMessageChannel<Object>(
-      this.binaryMessenger!, "dev.flutter.pigeon.VideoPlayerApi." + this.viewId + ".seekTo",StandardMessageCodec.INSTANCE);
-    seekToChannel.setMessageHandler({
-      onMessage(msg: Object, reply: Reply<Object>): void {
-        console.log("播放器-seekTo" + msg.toString());
-        self.callBack({
-          'type' : 'play_url',
-          'progress' : msg.toString()
-        });
-      }
-    });
-
-    const loopChannel: BasicMessageChannel<Object> = new BasicMessageChannel<Object>(
-      this.binaryMessenger!, "dev.flutter.pigeon.VideoPlayerApi." + this.viewId + ".loop",StandardMessageCodec.INSTANCE);
-    loopChannel.setMessageHandler({
-      onMessage(msg: Object, reply: Reply<Object>): void {
-        console.log("播放器-play_loop" + msg.toString());
-        self.callBack({
-          'type' : 'play_loop',
-          'loop' : msg
-        });
-      }
-    });
-  }
-
   sendEvent(args: ESObject) {
     this.eventSink?.success(args);
+  }
+
+  play(url : string | null) {
+    this.callBack({
+      'type' : 'play_url',
+      'url' : url
+    });
   }
 
   pause(url : string | null) {
@@ -127,4 +88,38 @@ export default class VideoPlayerController implements StreamHandler{
     });
   }
 
+  resume(url : string | null) {
+    console.log("播放器-resume" + url?.toString());
+    this.callBack({
+      'type' : 'resume',
+      'url' : url
+    });
+  }
+
+  stop(url: string | null) {
+    console.log("播放器-stop" + url?.toString());
+    this.callBack({
+      'type' : 'stop',
+      'url' : url
+    });
+  }
+
+  seekTo(url: string | null, progress : string | null) {
+    console.log("播放器-seekTo" + progress?.toString());
+    this.callBack({
+      'type' : 'seekTo',
+      'url' : url,
+      'progress' : progress
+    });
+  }
+
+  setLoop(url: string | null,loop : boolean | null) {
+    if (loop != null) {
+      this.callBack({
+        'type' : 'play_loop',
+        'url' : url,
+        'loop' : loop
+      });
+    }
+  }
 }

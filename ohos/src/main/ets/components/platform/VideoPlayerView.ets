@@ -11,6 +11,8 @@ import prompt from '@ohos.promptAction';
 import VideoPlayerController from './VideoPlayerController';
 import { DynamicUtils } from './DynamicUtils';
 import { DVModelParameters } from '@ohos/flutter_ohos/src/main/ets/view/DynamicView/dynamicView';
+import { Params } from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformView';
+import { VideoPlatformPlayerView } from './VideoPlatformPlayerView';
 
 
 export enum PlayStatus {
@@ -26,8 +28,9 @@ let mIjkMediaPlayer = IjkMediaPlayer.getInstance();
 @Entry
 @Component
 export struct VideoPlayerView {
-
-  public param : DVModelParameters | null = null;
+  @Prop param : Params;
+  customView: VideoPlatformPlayerView = this.param.platformView as VideoPlatformPlayerView;
+  public controller : VideoPlayerController = this.customView.getPlayerController();
   @State progressValue: number = 0;
   @State currentTime: string = "00:00";
   @State totalTime: string = "00:00";
@@ -43,57 +46,58 @@ export struct VideoPlayerView {
   @State isSeekTo: boolean = false;
   @State isCurrentTime: boolean = false;
   private videoUrl: string = '';
-  private playerChannel : VideoPlayerController | null = null;
   private xComponentId : string = '';
   private playStatus = PlayStatus.INIT;
   private updateProgressTimer: number = 0;
 
-
   aboutToAppear() {
     LogUtils.getInstance().LOGI("aboutToAppear");
     if (this.param != null) {
-      this.playerChannel = DynamicUtils.getParams(this.param!,'controller');
-      this.xComponentId = 'xComponentId' + this.playerChannel!.viewId.toString();
-      this.videoUrl = DynamicUtils.getParams(this.param!,'url');
-      this.playerChannel?.setOperationCall(
-        (param : ESObject) => {
-          let type : string | null = DynamicUtils.getParams(param,'type');
-          let url : string | null = DynamicUtils.getParams(param,'url');
-          switch (type) {
-            case 'play_url' : {
-              this.videoUrl = url??'';
-              this.startPlayOrResumePlay();
-            }
-              break;
-            case 'play' : {
-              this.startPlayOrResumePlay();
-            }
-              break;
-            case 'pause' : {
-              this.pause();
-            }
-              break;
-            case 'resume' : {
-              this.startPlayOrResumePlay();
-            }
-              break;
-            case 'stop' : {
-              this.stop();
-            }
-              break;
-            case 'seekTo' : {
-              let progress : string = DynamicUtils.getParams(param,'progress');
-              this.seekTo(progress);
-            }
-              break;
-            case 'play_loop' : {
-              let loop : boolean = DynamicUtils.getParams(param,'loop');
-              mIjkMediaPlayer.setLoopCount(loop);
-            }
-              break;
+      // this.playerChannel = DynamicUtils.getParams(this.param!,'controller');
+      // this.xComponentId = 'xComponentId' + this.playerChannel!.viewId.toString();
+      // this.videoUrl = DynamicUtils.getParams(this.param!,'url');
+      this.xComponentId = 'xComponentId' + this.customView.viewId.toString();
+      this.videoUrl = this.customView.url??'';
+      this.controller.operationCallBack = this.handleControllerOperation.bind(this);
+    }
+  }
 
-          }
-        });
+  handleControllerOperation(param: ESObject) {
+    let type : string | null = DynamicUtils.getParams(param,'type');
+    let url : string | null = DynamicUtils.getParams(param,'url');
+    switch (type) {
+      case 'play_url' : {
+        this.videoUrl = url??'';
+        this.startPlayOrResumePlay();
+      }
+        break;
+      case 'play' : {
+        this.startPlayOrResumePlay();
+      }
+        break;
+      case 'pause' : {
+        this.pause();
+      }
+        break;
+      case 'resume' : {
+        this.startPlayOrResumePlay();
+      }
+        break;
+      case 'stop' : {
+        this.stop();
+      }
+        break;
+      case 'seekTo' : {
+        let progress : string = DynamicUtils.getParams(param,'progress');
+        this.seekTo(progress);
+      }
+        break;
+      case 'play_loop' : {
+        let loop : boolean = DynamicUtils.getParams(param,'loop');
+        mIjkMediaPlayer.setLoopCount(loop);
+      }
+        break;
+
     }
   }
 
@@ -218,12 +222,12 @@ export struct VideoPlayerView {
     this.isCurrentTime = true;
     this.currentTime = this.stringForTime(position);
     if (duration > 0) {
-      this.playerChannel?.sendEvent({
+      this.controller.sendEvent({
         'type' : 'progress',
         'position' : position,
         'duration' : duration,
         'progress' : this.currentTime,
-        'viewId' : this.playerChannel.viewId,
+        'viewId' : this.controller.viewId,
         'url' : this.videoUrl
       });
     }

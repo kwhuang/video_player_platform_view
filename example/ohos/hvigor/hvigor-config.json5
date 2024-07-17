@@ -1,5 +1,8 @@
 {
   "modelVersion": "5.0.0",
   "dependencies": {
+  },
+  "debugging": {
+    "stacktrace": true                /* Disable stacktrace compilation. Value: [ true | false ]. Default: false */
   }
 }

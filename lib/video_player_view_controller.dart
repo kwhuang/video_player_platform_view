@@ -9,12 +9,18 @@ class VideoPlayerViewController {
   Stream<Map<dynamic, dynamic>> get onPlayerEventBroadcast => _eventStreamController.stream;
   String? _playUrl;
 
+  MethodChannel? _playerChannel;
+
   VideoPlayerViewController.init(int id, String? url) {
     _id = id;
     _playUrl = url;
     _eventSubscription = EventChannel("beautydata.com/videoPlayer/event/$id")
         .receiveBroadcastStream()
         .listen(_eventHandler, onError: _errorHandler);
+    _playerChannel = MethodChannel("beautydata.com/videoPlayer/channel/$id");
+    _playerChannel?.setMethodCallHandler((call) async {
+      debugPrint('鸿蒙那边传过来的method：${call.method},方法参数：${call.arguments}');
+    });
   }
 
   _eventHandler(event) {
@@ -28,72 +34,72 @@ class VideoPlayerViewController {
 
   Future<dynamic> playWithUrl({String url = ""}) async {
     _playUrl = url;
-    BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-      'dev.flutter.pigeon.VideoPlayerApi.$_id.play.url',
-      const StandardMessageCodec(),
-    );
-    final List<Object?>? replyList = await channel.send(url) as List<Object?>?;
-    debugPrint('播放器-play.url:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.play.url');
-    return replyList;
+    try {
+      return _playerChannel?.invokeMethod('play', {'url': _playUrl});
+    } catch (e, s) {
+      debugPrint('播放器play失败：${e.toString()}');
+      debugPrint('播放器play失败堆栈：${s.toString()}');
+      return null;
+    }
   }
 
   Future<dynamic> play() async {
-    BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-      'dev.flutter.pigeon.VideoPlayerApi.$_id.play',
-      const StandardMessageCodec(),
-    );
-    final replay = await channel.send(_playUrl);
-    debugPrint('播放器-play:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.play');
-    return replay;
+    try {
+      return _playerChannel?.invokeMethod('play', {'url': _playUrl});
+    } catch (e, s) {
+      debugPrint('播放器play失败：${e.toString()}');
+      debugPrint('播放器play失败堆栈：${s.toString()}');
+      return null;
+    }
   }
 
   Future<dynamic> pause() async {
-    BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-      'dev.flutter.pigeon.VideoPlayerApi.$_id.pause',
-      const StandardMessageCodec(),
-    );
-    final replay = await channel.send(_playUrl);
-    debugPrint('播放器-pause:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.pause');
-    return replay;
+    try {
+      return _playerChannel?.invokeMethod('pause', {'url': _playUrl});
+    } catch (e, s) {
+      debugPrint('播放器pause失败：${e.toString()}');
+      debugPrint('播放器pause失败堆栈：${s.toString()}');
+      return null;
+    }
   }
 
   Future<dynamic> resume() async {
-    BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-      'dev.flutter.pigeon.VideoPlayerApi.$_id.resume',
-      const StandardMessageCodec(),
-    );
-    final replay = await channel.send(_playUrl);
-    debugPrint('播放器-resume:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.resume');
-    return replay;
+    try {
+      return _playerChannel?.invokeMethod('resume', {'url': _playUrl});
+    } catch (e, s) {
+      debugPrint('播放器resume失败：${e.toString()}');
+      debugPrint('播放器resume失败堆栈：${s.toString()}');
+      return null;
+    }
   }
 
   Future<dynamic> stop() async {
-    BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-      'dev.flutter.pigeon.VideoPlayerApi.$_id.stop',
-      const StandardMessageCodec(),
-    );
-    final replay = await channel.send(_playUrl);
-    debugPrint('播放器-stop:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.stop');
-    return replay;
+    try {
+      return _playerChannel?.invokeMethod('stop', {'url': _playUrl});
+    } catch (e, s) {
+      debugPrint('播放器stop失败：${e.toString()}');
+      debugPrint('播放器stop失败堆栈：${s.toString()}');
+      return null;
+    }
   }
 
   Future<dynamic> seekTo(progress) async {
-    BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-      'dev.flutter.pigeon.VideoPlayerApi.$_id.seekTo',
-      const StandardMessageCodec(),
-    );
-    final replay = await channel.send(progress);
-    debugPrint('播放器-seekTo:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.seekTo');
-    return replay;
+    try {
+      return _playerChannel?.invokeMethod('seekTo', {'url': _playUrl, 'progress': progress});
+    } catch (e, s) {
+      debugPrint('播放器seekTo失败：${e.toString()}');
+      debugPrint('播放器seekTo失败堆栈：${s.toString()}');
+      return null;
+    }
   }
 
   Future<dynamic> setLoop(loop) async {
-    BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-      'dev.flutter.pigeon.VideoPlayerApi.$_id.loop',
-      const StandardMessageCodec(),
-    );
-    final replay = await channel.send(loop);
-    debugPrint('播放器-loop:$_playUrl,\n name:dev.flutter.pigeon.VideoPlayerApi.$_id.seekTo');
-    return replay;
+    try {
+      return _playerChannel?.invokeMethod('loop', {'url': _playUrl, 'loop': loop});
+    } catch (e, s) {
+      debugPrint('播放器loop失败：${e.toString()}');
+      debugPrint('播放器loop失败堆栈：${s.toString()}');
+      return null;
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { FlutterPluginBinding } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/FlutterPlugin';
-import PlatformView from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformView';
+import PlatformView, { Params } from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformView';
 import { BuilderParams, DVModel } from '@ohos/flutter_ohos/src/main/ets/view/DynamicView/dynamicView';
 import { createDVModelFromJson } from '@ohos/flutter_ohos/src/main/ets/view/DynamicView/dynamicViewJson';
 import VideoPlayerController from './VideoPlayerController';
@@ -9,42 +9,35 @@ import { DynamicUtils } from './DynamicUtils';
 
 
 @Builder
-function createVideoPlayerView(param : BuilderParams) {
-  VideoPlayerView({param:param.params});
+function createVideoPlayerView(params: Params) {
+  //这里不通过controller传过去，在那边使用getPlayerController获取到的是另外一个新的controller实例对象
+  VideoPlayerView({
+    param:params,
+    controller: (params.platformView as VideoPlatformPlayerView).getPlayerController()
+  }).backgroundColor(Color.Yellow);
 }
 
 export class VideoPlatformPlayerView extends PlatformView {
 
   private controller : VideoPlayerController | null = null;
   private binding: FlutterPluginBinding | null = null;
-  private url : string | null = null;
-  private viewId : number = 0;
-  private ohosWebView: DVModelJson | null = null;
-  private ohosModel : ESObject = null;
+  public url : string | null = null;
+  public viewId : number = 0;
 
   constructor(context: Context, viewId: ESObject, args: ESObject,binding: FlutterPluginBinding) {
     super();
     this.viewId = viewId;
     this.binding = binding;
     this.url = args.get('url');
-    this.controller = new VideoPlayerController(this.binding.getBinaryMessenger(),viewId);
-    this.ohosWebView = new DVModelJson(
-      "other",
-      [],
-      {
-        src: "",
-        viewId : this.viewId,
-        url : this.url,
-        controller : this.controller
-      },
-      {},
-      createVideoPlayerView
-    );
-    this.ohosModel = createDVModelFromJson(this.ohosWebView);
+    this.controller = new VideoPlayerController(this.binding!.getBinaryMessenger(),this.viewId);
   }
 
-  getView(): DVModel {
-    return this.ohosModel;
+  getPlayerController() : VideoPlayerController {
+    return this.controller!;
+  }
+
+  getView(): WrappedBuilder<[Params]> {
+    return new WrappedBuilder(createVideoPlayerView);
   }
 
   onFlutterViewAttached(dvModel: DVModel): void {
